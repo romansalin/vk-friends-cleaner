@@ -33,3 +33,5 @@ nosetests.xml
 .idea/
 
 .DS_Store
+
+friends.txt
