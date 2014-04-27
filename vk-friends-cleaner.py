@@ -18,42 +18,51 @@ class VKFriendsCleaner:
         """
         Find friends with a lot of friends.
         """
+        result = []
+
         uid = self.get_uid(self.short_name)
         api = self.FRIENDS_API.format(uid)
         response = urllib.urlopen(api)
 
-        my_friends_data = json.loads(response.read())
-        remaining = len(my_friends_data['response'])
-        result = []
-        for my_friend in my_friends_data['response']:
-            api = self.FRIENDS_API.format(my_friend['uid'])
-            response = urllib.urlopen(api)
+        if response.code == 200:
+            my_friends_data = json.loads(response.read())
+            remaining = len(my_friends_data['response'])
 
-            friends_data = json.loads(response.read())
-            friends_total = len(friends_data['response'])
+            for my_friend in my_friends_data['response']:
+                api = self.FRIENDS_API.format(my_friend['uid'])
+                response = urllib.urlopen(api)
 
-            if friends_total >= self.min_friends:
-                my_friend['total'] = friends_total
-                result.append(my_friend)
+                if response.code == 200:
+                    friends_data = json.loads(response.read())
+                    if 'response' in friends_data:
+                        friends_total = len(friends_data['response'])
+                    else:
+                        friends_total = 0
 
-            remaining -= 1
-            print 'Remaining... ', remaining
+                    if friends_total >= self.min_friends:
+                        my_friend['total'] = friends_total
+                        result.append(my_friend)
+
+                remaining -= 1
+                print 'Remaining... ', remaining
 
         self.print_result(result)
 
     def get_uid(self, short_name):
         """
-        Returns UID from short name.
+        Returns UID from a short name.
         """
         api = self.USERS_API.format(short_name)
         response = urllib.urlopen(api)
-        user_data = json.loads(response.read())
-        uid = user_data['response'][0]['uid']
-        return uid
+        if response.code == 200:
+            user_data = json.loads(response.read())
+            uid = user_data['response'][0]['uid']
+            return uid
+        return False
 
     def print_result(self, result):
         """
-        Print result.
+        Print result in a file.
         """
         f = open('friends.txt', 'w')
         sorted_result = sorted(result, key=lambda k: k['total'], reverse=True)
