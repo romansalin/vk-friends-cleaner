@@ -1,0 +1,1 @@
+Simple utility that finds your friends with more than N friends in vk.com and help you remove "fat" friends.
